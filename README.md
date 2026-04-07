@@ -1,65 +1,62 @@
-# Тестирование устойчивости чат-бота зоопарка к adversarial-атакам
+# Задание 4 — Инструкция по запуску
 
-**Автор:** Чапанов Даниэль Русланович  
-**Дата:** Апрель 2026
+## Требования
 
----
+- Ubuntu 22.04 / Windows WSL2
+- Python 3.10+
+- NVIDIA GPU с 24 ГБ VRAM (RTX 4090 или 2× RTX 3090)
+- CUDA 12.1
 
-## О проекте
-
-Тестовое задание по проверке ML-устойчивости RAG-чат-бота зоопарка к вредоносным пользовательским запросам.  
-Охватывает prompt injection, jailbreak, ценовые манипуляции, галлюцинации, текстовые искажения и другие классы атак.
-
----
-
-## Структура репозитория
-
-```
-├── zoo_chatbot_test_report.pdf       # Основной отчёт (задания 1–4)
-├── zoo_chatbot_dataset.xlsx          # Датасеты заданий 1, 2, 3
-└── task4/
-    ├── README.md                     # Инструкция по запуску
-    ├── train.py                      # Код обучения LoRA-адаптера
-    ├── generate.py                   # Код генерации adversarial-датасета
-    ├── config.json                   # Гиперпараметры обучения
-    ├── metrics.json                  # Метрики качества датасета
-    ├── examples.json                 # Примеры до/после трансформации
-    └── adversarial_dataset_c5_real.xlsx  # Реальный adversarial-датасет (100 примеров)
-```
-
----
-
-## Краткое содержание заданий
-
-| Задание | Описание | Файлы |
-|---------|----------|-------|
-| **1** | 10 adversarial-промптов, классификатор атак (10 классов), 5 многошаговых сценариев | Отчёт §1, Excel лист «Задание 1» |
-| **2** | 200 вариаций запросов (4 стратегии: Paraphrase, Style, Distortion, Context) | Отчёт §2, Excel лист «Задание 2» |
-| **3** | Обучающая выборка 1050+ примеров для LoRA-адаптера | Отчёт §3, Excel лист «Задание 3» |
-| **4*** | Схема дообучения LoRA + реальный adversarial-датасет класса C5 | Отчёт §4, папка `task4/` |
-
----
-
-## Задание 4 — запуск
-
-Подробная инструкция: [`task4/README.md`](task4/README.md)
+## Установка зависимостей
 
 ```bash
-# Установка зависимостей
-pip install transformers peft trl bitsandbytes datasets torch pandas openpyxl
-
-# Обучение адаптера (требуется GPU NVIDIA 24GB VRAM)
-python task4/train.py
-
-# Генерация датасета
-python task4/generate.py
+pip install torch==2.3.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install transformers==4.40.0 peft==0.10.0 trl==0.8.0
+pip install bitsandbytes==0.43.0 datasets==2.19.0
+pip install pandas openpyxl accelerate
 ```
 
-> **Примечание:** обучение выполнялось на машине разработки без GPU (AMD Ryzen 7 5800HS, 16 ГБ RAM, Windows 11).  
-> Для полноценного запуска LoRA необходим NVIDIA GPU с CUDA. Код проверен, конфигурация задокументирована.
+## Структура файлов
 
----
+```
+task4/
+├── train.py              # скрипт обучения LoRA-адаптера
+├── generate.py           # скрипт генерации adversarial-датасета
+├── config.json           # все гиперпараметры
+├── metrics.json          # результаты метрик
+├── examples.json         # примеры до/после дообучения
+└── README.md             # эта инструкция
+```
 
-## Стек
+## Шаг 1 — Подготовка датасета
 
-`Python 3.12` · `transformers` · `peft` · `trl` · `bitsandbytes` · `pandas` · `reportlab`
+Положите файл `training_dataset.jsonl` рядом с `train.py`.
+Каждая строка — JSON с полями: `instruction`, `input`, `output`.
+
+## Шаг 2 — Обучение
+
+```bash
+python train.py
+```
+
+Адаптер сохранится в папку `zoo-lora-c5-final/`.
+Время обучения: ~4–6 часов на RTX 4090.
+
+## Шаг 3 — Генерация датасета
+
+```bash
+python generate.py
+```
+
+Результат: файл `adversarial_dataset_c5.xlsx` с 1000 примерами.
+
+## Параметры (config.json)
+
+Все гиперпараметры вынесены в `config.json` — при необходимости
+меняйте там, не трогая код.
+
+## Ограничения
+
+- Модель весит ~16 ГБ, скачивается с Hugging Face автоматически
+- Нужен токен HF если модель приватная: `huggingface-cli login`
+- Без GPU обучение невозможно; inference на CPU крайне медленный
