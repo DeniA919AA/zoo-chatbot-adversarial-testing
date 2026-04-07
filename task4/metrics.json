@@ -1,0 +1,24 @@
+{
+  "training": {
+    "val_loss_epoch1": 1.87,
+    "val_loss_epoch2": 1.51,
+    "val_loss_epoch3": 1.24,
+    "best_checkpoint": "checkpoint-150"
+  },
+  "dataset_quality": {
+    "total_generated": 1000,
+    "unique_exact_pct": 98.3,
+    "unique_semantic_pct": 94.1,
+    "relevance_to_c5_pct": 91.7,
+    "hard_samples_pct": 26.4,
+    "avg_prompt_tokens": 48,
+    "perplexity_test": 8.7
+  },
+  "subtype_distribution": {
+    "опечатки и замена букв": 200,
+    "leet-speak": 200,
+    "случайные заглавные буквы": 200,
+    "разрывы слов пробелами": 200,
+    "leet + injection": 200
+  }
+}
